@@ -402,6 +402,10 @@
                     });
                     
                     if (response.ok) {
+                        // SUCCESS PATH
+                        // *** ADDED THIS LOG ***
+                        console.log('Formsubmit Status: 200 OK. The application data was successfully sent to Formsubmit servers.');
+                        
                         // Success: Display success message and reset the form
                         displayMessage('Application submitted successfully! Please check your inbox (and spam folder) for the confirmation link from Formsubmit.', 'success-final');
                         form.reset(); 
@@ -410,12 +414,13 @@
                         messageBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         
                     } else {
-                        // Formsubmit returns non-OK status on error (e.g., bad request)
+                        // ERROR PATH (Formsubmit returns non-OK status on error)
                         const errorData = await response.json();
                         console.error('Formsubmit Error:', errorData);
                         displayMessage(`Submission failed. Formsubmit reported an error. Please check the console for details.`, 'error');
                     }
                 } catch (error) {
+                    // NETWORK ERROR PATH
                     console.error('Network or Fetch Error:', error);
                     displayMessage(`A network error occurred. Please try again.`, 'error');
                 }
