@@ -284,30 +284,30 @@
 
     <!-- Formsubmit.co and form logic -->
     <script>
-        // --- FORMSUBMIT CONFIGURATION ---
-        // IMPORTANT: This email is set to receive all form submissions.
-        const FORMSUBMIT_EMAIL_ADDRESS = 'rbox1576@gmail.com'; 
-        const FORMSUBMIT_URL = `https://formsubmit.co/${FORMSUBMIT_EMAIL_ADDRESS}`;
-        
-        // Console Log the generated URL for debugging the setup
-        console.log(`[FormSubmit Config] Submitting data to: ${FORMSUBMIT_URL}`);
-        
-        // Check if the email is still the placeholder to warn the user
-        let isFormsubmitReady = FORMSUBMIT_EMAIL_ADDRESS !== 'YOUR_EMAIL@EXAMPLE.COM';
-
-        if (!isFormsubmitReady) {
-            console.warn("Formsubmit WARNING: Email address not set. Data will NOT be submitted. Please replace 'YOUR_EMAIL@EXAMPLE.COM'.");
-        }
-        
-        /* * IMPORTANT: FormSubmit requires the first submission to be confirmed. 
-         * After the first successful submission, you MUST check your inbox (and spam/junk folder)
-         * for the confirmation email from FormSubmit and click the link to activate the email address.
-         * No future submissions will be received until this step is completed.
-         */
-        // --- END FORMSUBMIT CONFIGURATION ---
-
-
         document.addEventListener('DOMContentLoaded', () => {
+
+            // --- FORMSUBMIT CONFIGURATION (Moved inside DOMContentLoaded) ---
+            // IMPORTANT: This email is set to receive all form submissions.
+            const FORMSUBMIT_EMAIL_ADDRESS = 'rbox1576@gmail.com'; 
+            const FORMSUBMIT_URL = `https://formsubmit.co/${FORMSUBMIT_EMAIL_ADDRESS}`;
+            
+            // Console Log the generated URL for debugging the setup
+            console.log(`[FormSubmit Config] Submitting data to: ${FORMSUBMIT_URL}`);
+            
+            // Check if the email is still the placeholder to warn the user
+            let isFormsubmitReady = FORMSUBMIT_EMAIL_ADDRESS !== 'YOUR_EMAIL@EXAMPLE.COM';
+
+            if (!isFormsubmitReady) {
+                console.warn("Formsubmit WARNING: Email address not set. Data will NOT be submitted. Please replace 'YOUR_EMAIL@EXAMPLE.COM'.");
+            }
+            
+            /* * IMPORTANT: FormSubmit requires the first submission to be confirmed. 
+             * After the first successful submission, you MUST check your inbox (and spam/junk folder)
+             * for the confirmation email from FormSubmit and click the link to activate the email address.
+             * No future submissions will be received until this step is completed.
+             */
+            // --- END FORMSUBMIT CONFIGURATION ---
+
             const form = document.getElementById('employmentForm');
             const messageBox = document.getElementById('message-box');
             const historyContainer = document.getElementById('employment-history-container');
@@ -378,17 +378,17 @@
                 
                 const formData = new FormData(form);
                 const data = {};
+                
+                // 1. Collect all data from formData
                 for (let [key, value] of formData.entries()) {
-                    // Formsubmit requires the _subject field for the email subject line
-                    if (key === 'position') {
-                        data['_subject'] = `New Application for: ${value}`;
-                    }
-                    // Include all other fields
                     data[key] = value;
                 }
-
-                // Append the Formsubmit required fields
-                data['_replyto'] = data.email || 'noreply@example.com'; // Use the applicant's email for replies
+                
+                // 2. Set FormSubmit Control Fields explicitly
+                data['_replyto'] = data.email || 'noreply@example.com';
+                data['_subject'] = data.position ? `New Application for: ${data.position}` : 'New Employment Application Submitted';
+                data['_captcha'] = false; // Explicitly disable captcha for easier testing/initial setup
+                data['_template'] = 'table'; // Use a clean table format for the email body
 
                 try {
                     // Send data as JSON to the Formsubmit endpoint
@@ -403,7 +403,7 @@
                     
                     if (response.ok) {
                         // Success: Display success message and reset the form
-                        displayMessage('Application submitted successfully! Thank you for your interest.', 'success-final');
+                        displayMessage('Application submitted successfully! Please check your inbox (and spam folder) for the confirmation link from Formsubmit.', 'success-final');
                         form.reset(); 
                         
                         // Scroll to the message box
@@ -413,7 +413,7 @@
                         // Formsubmit returns non-OK status on error (e.g., bad request)
                         const errorData = await response.json();
                         console.error('Formsubmit Error:', errorData);
-                        displayMessage(`Submission failed. Please check the console for details.`, 'error');
+                        displayMessage(`Submission failed. Formsubmit reported an error. Please check the console for details.`, 'error');
                     }
                 } catch (error) {
                     console.error('Network or Fetch Error:', error);
