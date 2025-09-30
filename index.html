@@ -203,7 +203,7 @@
                 <h2 class="text-2xl font-semibold text-gray-800 border-b pb-2 mb-4 border-gray-300">Employment History</h2>
                 
                 <div id="employment-history-container" class="space-y-8">
-                    <!-- Employment Block Template (3 blocks total) -->
+                    <!-- Employment Block Template (2 blocks total) -->
                 </div>
                 
                 <template id="employment-block-template">
@@ -314,7 +314,8 @@
             const messageBox = document.getElementById('message-box');
             const historyContainer = document.getElementById('employment-history-container');
             const blockTemplate = document.getElementById('employment-block-template');
-            const totalBlocks = 3; 
+            // UPDATED: Changed totalBlocks from 3 to 2 to remove the third employer section.
+            const totalBlocks = 2; 
             
             // NEW: References to the main container and the thank you message
             const mainContent = document.getElementById('main-content');
@@ -428,4 +429,3 @@
     </script>
 </body>
 </html>
-
