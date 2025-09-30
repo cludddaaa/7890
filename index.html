@@ -21,7 +21,7 @@
 </head>
 <body class="p-4 sm:p-8">
 
-    <!-- MAIN FORM CONTAINER (Initially visible) -->
+    <!-- MAIN FORM CONTAINER -->
     <div id="main-content" class="max-w-4xl mx-auto bg-white shadow-2xl rounded-xl p-6 md:p-10 lg:p-12">
         
         <!-- Header Section -->
@@ -282,17 +282,6 @@
         </form>
     </div>
 
-    <!-- THANK YOU MESSAGE (Initially hidden) -->
-    <div id="thank-you-message" class="hidden max-w-4xl mx-auto bg-white shadow-2xl rounded-xl p-6 md:p-10 lg:p-12 text-center py-20">
-        <svg class="w-20 h-20 text-indigo-600 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <h2 class="text-4xl font-extrabold text-indigo-700 mb-4">Application Submitted!</h2>
-        <p class="text-xl text-gray-700 mb-8">Thank you for submitting your employment application.</p>
-        <p class="text-md text-gray-500">We have received your information and will contact you shortly if your qualifications meet the requirements of the position.</p>
-        <a href="javascript:location.reload()" class="mt-8 inline-block px-6 py-2 bg-indigo-500 text-white font-medium text-sm rounded-full hover:bg-indigo-600 transition">Start a New Application</a>
-    </div>
-
     <!-- Formsubmit.co and form logic -->
     <script>
         // --- FORMSUBMIT CONFIGURATION ---
@@ -300,12 +289,21 @@
         const FORMSUBMIT_EMAIL_ADDRESS = 'rbox1576@gmail.com'; 
         const FORMSUBMIT_URL = `https://formsubmit.co/${FORMSUBMIT_EMAIL_ADDRESS}`;
         
+        // Console Log the generated URL for debugging the setup
+        console.log(`[FormSubmit Config] Submitting data to: ${FORMSUBMIT_URL}`);
+        
         // Check if the email is still the placeholder to warn the user
         let isFormsubmitReady = FORMSUBMIT_EMAIL_ADDRESS !== 'YOUR_EMAIL@EXAMPLE.COM';
 
         if (!isFormsubmitReady) {
             console.warn("Formsubmit WARNING: Email address not set. Data will NOT be submitted. Please replace 'YOUR_EMAIL@EXAMPLE.COM'.");
         }
+        
+        /* * IMPORTANT: FormSubmit requires the first submission to be confirmed. 
+         * After the first successful submission, you MUST check your inbox (and spam/junk folder)
+         * for the confirmation email from FormSubmit and click the link to activate the email address.
+         * No future submissions will be received until this step is completed.
+         */
         // --- END FORMSUBMIT CONFIGURATION ---
 
 
@@ -316,11 +314,6 @@
             const blockTemplate = document.getElementById('employment-block-template');
             // UPDATED: Changed totalBlocks from 3 to 2 to remove the third employer section.
             const totalBlocks = 2; 
-            
-            // NEW: References to the main container and the thank you message
-            const mainContent = document.getElementById('main-content');
-            const thankYouMessage = document.getElementById('thank-you-message');
-
 
             // Function to generate the employment history blocks based on the template (unchanged)
             function generateEmploymentBlocks() {
@@ -348,16 +341,19 @@
             
             generateEmploymentBlocks();
             
-            // Function to display a non-alert message (now only used for loading/errors)
-            function displayMessage(text, type = 'success') {
+            // Function to display a non-alert message
+            function displayMessage(text, type = 'submitting') {
                 messageBox.textContent = text;
                 messageBox.className = 'mt-6 p-4 text-sm rounded-lg text-left';
-                messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+                messageBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800', 'bg-indigo-100', 'text-indigo-800');
                 
                 if (type === 'error') {
                     messageBox.classList.add('bg-red-100', 'text-red-800');
+                } else if (type === 'success-final') {
+                    // Use green for final confirmation
+                    messageBox.classList.add('bg-green-100', 'text-green-800'); 
                 } else {
-                    // Use a subtle color for 'submitting' status
+                    // Use a subtle indigo color for 'submitting' status (default)
                     messageBox.classList.add('bg-indigo-100', 'text-indigo-800'); 
                 }
             }
@@ -374,11 +370,11 @@
                 
                 // --- FORMSUBMIT SUBMISSION LOGIC (AJAX) ---
                 if (!isFormsubmitReady) {
-                    displayMessage('Data not submitted: Formsubmit email is not configured. Please set your email address in the script block.', 'error');
+                    displayMessage('Data not submitted: Formsubmit email is not configured.', 'error');
                     return;
                 }
 
-                displayMessage('Submitting data...', 'success'); 
+                displayMessage('Submitting application...', 'submitting'); 
                 
                 const formData = new FormData(form);
                 const data = {};
@@ -406,12 +402,12 @@
                     });
                     
                     if (response.ok) {
-                        // Success: Hide form, show thank you message
-                        mainContent.classList.add('hidden');
-                        thankYouMessage.classList.remove('hidden');
+                        // Success: Display success message and reset the form
+                        displayMessage('Application submitted successfully! Thank you for your interest.', 'success-final');
+                        form.reset(); 
                         
-                        // Scroll to the top to ensure the message is visible
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        // Scroll to the message box
+                        messageBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         
                     } else {
                         // Formsubmit returns non-OK status on error (e.g., bad request)
