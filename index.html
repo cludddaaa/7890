@@ -282,37 +282,33 @@
         </form>
     </div>
 
-    <!-- Formsubmit.co and form logic -->
+    <!-- Web3Forms and form logic -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // --- FORMSUBMIT CONFIGURATION (Moved inside DOMContentLoaded) ---
-            // IMPORTANT: This email is set to receive all form submissions.
-            const FORMSUBMIT_EMAIL_ADDRESS = 'rbox1576@gmail.com'; 
-            const FORMSUBMIT_URL = `https://formsubmit.co/${FORMSUBMIT_EMAIL_ADDRESS}`;
+            // --- WEB3FORMS CONFIGURATION ---
+            // 1. SIGN UP at https://web3forms.com/
+            // 2. GET YOUR ACCESS KEY from your dashboard.
+            // 3. REPLACE the placeholder below with your key.
+            const WEB3FORMS_ACCESS_KEY = '4964cd33-1942-4183-8bd2-d5296113379b'; 
+            const WEB3FORMS_URL = 'https://api.web3forms.com/submit';
             
-            // Console Log the generated URL for debugging the setup
-            console.log(`[FormSubmit Config] Submitting data to: ${FORMSUBMIT_URL}`);
+            // Log the generated URL for debugging the setup
+            console.log(`[Web3Forms Config] Submitting data to: ${WEB3FORMS_URL}`);
             
-            // Check if the email is still the placeholder to warn the user
-            let isFormsubmitReady = FORMSUBMIT_EMAIL_ADDRESS !== 'YOUR_EMAIL@EXAMPLE.COM';
+            // Check if the key is still the placeholder to warn the user
+            let isWeb3FormsReady = WEB3FORMS_ACCESS_KEY !== 'YOUR_WEB3FORMS_ACCESS_KEY';
 
-            if (!isFormsubmitReady) {
-                console.warn("Formsubmit WARNING: Email address not set. Data will NOT be submitted. Please replace 'YOUR_EMAIL@EXAMPLE.COM'.");
+            if (!isWeb3FormsReady) {
+                console.warn("Web3Forms WARNING: Access Key not set. Data will NOT be submitted. Please replace 'YOUR_WEB3FORMS_ACCESS_KEY'.");
             }
             
-            /* * IMPORTANT: FormSubmit requires the first submission to be confirmed. 
-             * After the first successful submission, you MUST check your inbox (and spam/junk folder)
-             * for the confirmation email from FormSubmit and click the link to activate the email address.
-             * No future submissions will be received until this step is completed.
-             */
-            // --- END FORMSUBMIT CONFIGURATION ---
+            // --- END WEB3FORMS CONFIGURATION ---
 
             const form = document.getElementById('employmentForm');
             const messageBox = document.getElementById('message-box');
             const historyContainer = document.getElementById('employment-history-container');
             const blockTemplate = document.getElementById('employment-block-template');
-            // UPDATED: Changed totalBlocks from 3 to 2 to remove the third employer section.
             const totalBlocks = 2; 
 
             // Function to generate the employment history blocks based on the template (unchanged)
@@ -358,7 +354,7 @@
                 }
             }
 
-            // Handle Form Submission (Updated for AJAX Formsubmit)
+            // Handle Form Submission (Updated for AJAX Web3Forms)
             form.addEventListener('submit', async (e) => {
                 e.preventDefault(); // Prevent default form submission/navigation
 
@@ -368,9 +364,9 @@
                     return;
                 }
                 
-                // --- FORMSUBMIT SUBMISSION LOGIC (AJAX) ---
-                if (!isFormsubmitReady) {
-                    displayMessage('Data not submitted: Formsubmit email is not configured.', 'error');
+                // --- WEB3FORMS SUBMISSION LOGIC (AJAX) ---
+                if (!isWeb3FormsReady) {
+                    displayMessage('Data not submitted: Web3Forms Access Key is not configured.', 'error');
                     return;
                 }
 
@@ -381,18 +377,21 @@
                 
                 // 1. Collect all data from formData
                 for (let [key, value] of formData.entries()) {
+                    // Normalize keys for clean output if needed, but for now, just collect
                     data[key] = value;
                 }
                 
-                // 2. Set FormSubmit Control Fields explicitly
-                data['_replyto'] = data.email || 'noreply@example.com';
-                data['_subject'] = data.position ? `New Application for: ${data.position}` : 'New Employment Application Submitted';
-                data['_captcha'] = false; // Explicitly disable captcha for easier testing/initial setup
-                data['_template'] = 'table'; // Use a clean table format for the email body
+                // 2. Add the required access key to the payload
+                data['access_key'] = WEB3FORMS_ACCESS_KEY;
+                
+                // 3. Add custom controls (Web3Forms auto-uses 'email' for reply-to)
+                data['subject'] = data.position ? `New Application for: ${data.position}` : 'New Employment Application Submitted';
+                // You can add 'botcheck' for spam prevention, but we'll leave it off for initial testing
+                // data['botcheck'] = ''; 
 
                 try {
-                    // Send data as JSON to the Formsubmit endpoint
-                    const response = await fetch(FORMSUBMIT_URL, {
+                    // Send data as JSON to the Web3Forms endpoint
+                    const response = await fetch(WEB3FORMS_URL, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -401,30 +400,30 @@
                         body: JSON.stringify(data)
                     });
                     
-                    if (response.ok) {
+                    const result = await response.json();
+
+                    if (result.success) {
                         // SUCCESS PATH
-                        // *** ADDED THIS LOG ***
-                        console.log('Formsubmit Status: 200 OK. The application data was successfully sent to Formsubmit servers.');
+                        console.log('Web3Forms Status: Success. The application data was successfully sent.');
                         
                         // Success: Display success message and reset the form
-                        displayMessage('Application submitted successfully! Please check your inbox (and spam folder) for the confirmation link from Formsubmit.', 'success-final');
+                        displayMessage('Application submitted successfully! Using Web3Forms for delivery.', 'success-final');
                         form.reset(); 
                         
                         // Scroll to the message box
                         messageBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         
                     } else {
-                        // ERROR PATH (Formsubmit returns non-OK status on error)
-                        const errorData = await response.json();
-                        console.error('Formsubmit Error:', errorData);
-                        displayMessage(`Submission failed. Formsubmit reported an error. Please check the console for details.`, 'error');
+                        // ERROR PATH (Web3Forms returns a JSON response with success: false and a message)
+                        console.error('Web3Forms Error:', result.message);
+                        displayMessage(`Submission failed: ${result.message}. Please check the console for details.`, 'error');
                     }
                 } catch (error) {
                     // NETWORK ERROR PATH
                     console.error('Network or Fetch Error:', error);
                     displayMessage(`A network error occurred. Please try again.`, 'error');
                 }
-                // --- END FORMSUBMIT SUBMISSION LOGIC ---
+                // --- END WEB3FORMS SUBMISSION LOGIC ---
             });
         });
     </script>
